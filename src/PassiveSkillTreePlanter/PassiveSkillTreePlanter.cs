@@ -41,6 +41,8 @@ namespace PassiveSkillTreePlanter
         private List<string> BuildFiles { get; set; }
         public IntPtr TextEditCallback { get; set; }
 
+        public PassiveSkillTreePlanter() => PluginName = "Passive Skill Tree Planner "; // adding space here otherwise the plugins list cuts off the end character.
+
         public override void Initialise()
         {
             _skillTreeeData = new PoESkillTreeJsonDecoder();
@@ -224,7 +226,7 @@ namespace PassiveSkillTreePlanter
                             ImGui.Spacing();
                             ImGui.BulletText("Notes");
                             ImGui.Spacing();
-                            foreach (string line in Notes) ImGui.Text(line);
+                            foreach (string line in Notes) ImGui.TextWrapped(line);
                         }
                         break;
                     case "Build Edit":
