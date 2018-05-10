@@ -217,6 +217,15 @@ namespace PassiveSkillTreePlanter
                         if (ImGui.Button("Open Forum Thread")) ReadHtmlLineFromFile(Settings.SelectedURLFile);
                         Settings.SelectedURLFile = ImGuiExtension.ComboBox("Build Files", Settings.SelectedURLFile, BuildFiles, out var tempBool, ComboFlags.HeightLarge);
                         if (tempBool) ReadUrlFromSelectedUrl(Settings.SelectedURLFile);
+                        List<string> Notes = ReadNotesFromSelectedBuild(Settings.SelectedURLFile);
+                        if (Notes.Count > 0)
+                        {
+                            ImGui.Spacing();
+                            ImGui.Spacing();
+                            ImGui.BulletText("Notes");
+                            ImGui.Spacing();
+                            foreach (string line in Notes) ImGui.Text(line);
+                        }
                         break;
                     case "Build Edit":
                         if (!string.IsNullOrEmpty(CurrentlySelectedBuildFile))
@@ -261,6 +270,27 @@ namespace PassiveSkillTreePlanter
                 }
             ImGui.PopStyleVar();
             ImGui.EndChild();
+        }
+
+        private List<string> ReadNotesFromSelectedBuild(string fileName)
+        {
+            string BuildFilePath = Path.Combine(SkillTreeUrlFilesDir, fileName + ".txt");
+            List<string> tempList = new List<string>();
+            if (!File.Exists(BuildFilePath))
+            {
+                return tempList;
+            }
+
+            string[] strings = File.ReadAllLines(BuildFilePath);
+            if (strings.Length <= 2) return tempList;
+            for (int i = 2; i < strings.Length; i++)
+            {
+                string line = strings[i];
+                string replace = line.Replace('–', '-');
+                tempList.Add(replace);
+            }
+
+            return tempList;
         }
 
         private void ReadHtmlLineFromFile(string fileName)
