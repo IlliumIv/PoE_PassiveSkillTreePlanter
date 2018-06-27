@@ -392,7 +392,7 @@ namespace PassiveSkillTreePlanter
 
                             if (ImGui.Button($"Save Build to File: {Settings.SelectedURLFile}"))
                             {
-                                TreeConfig.SaveSettingFile(Settings.SelectedURLFile, Settings.SelectedBuild);
+                                TreeConfig.SaveSettingFile($@"{SkillTreeUrlFilesDir}\{Settings.SelectedURLFile}", Settings.SelectedBuild);
                                 BuildFiles = TreeConfig.GetBuilds();
                             }
                         }
@@ -502,7 +502,7 @@ namespace PassiveSkillTreePlanter
                             InputTextFlags.EnterReturnsTrue);
                         if (ImGui.Button($"Save Build to File: {AddNewBuildFile}"))
                         {
-                            TreeConfig.SaveSettingFile(AddNewBuildFile, Settings.SelectedBuildCreating);
+                            TreeConfig.SaveSettingFile($@"{SkillTreeUrlFilesDir}\{AddNewBuildFile}", Settings.SelectedBuildCreating);
                             BuildFiles = TreeConfig.GetBuilds();
                             Settings.SelectedBuildCreating = new TreeConfig.SkillTreeData();
                         }

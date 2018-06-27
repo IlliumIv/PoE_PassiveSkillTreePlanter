@@ -31,7 +31,7 @@ namespace PassiveSkillTreePlanter
 
         public static void SaveSettingFile<TSettingType>(string fileName, TSettingType setting)
         {
-            var buildFile = $@"D:\Path of exile Tools\PoEHUD\Release\plugins\5Passive Skill Tree Planer\Build\{fileName}.json";
+            var buildFile = $"{fileName}.json";
             var serialized = JsonConvert.SerializeObject(setting, Formatting.Indented);
 
             File.WriteAllText(buildFile, serialized);
