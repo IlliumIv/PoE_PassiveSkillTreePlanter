@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using ImGuiNET;
@@ -270,6 +272,36 @@ namespace PassiveSkillTreePlanter
 
             ImGui.InputText(label, buffer, maxLength, flags, Callback);
             return Encoding.Default.GetString(buffer).TrimEnd('\0');
+        }
+
+        public static unsafe string InputTextBox(string label, string currentValue, int maxLength, ImGuiVector2 vect2, InputTextFlags flags)
+        {
+            var currentStringBytes = Encoding.Default.GetBytes(currentValue);
+            var buffer = new byte[maxLength];
+            Array.Copy(currentStringBytes, buffer, Math.Min(currentStringBytes.Length, maxLength));
+
+
+            var unmanagedPointer = Marshal.AllocHGlobal(buffer.Length);
+            Marshal.Copy(buffer, 0, unmanagedPointer, buffer.Length);
+            // Call unmanaged code
+            Marshal.FreeHGlobal(unmanagedPointer);
+
+            int Callback(TextEditCallbackData* data)
+            {
+                var pCursorPos = (int*) data->UserData;
+                if (!data->HasSelection()) *pCursorPos = data->CursorPos;
+                return 0;
+            }
+
+
+            ImGui.InputTextMultiline(label,
+                unmanagedPointer, (uint) maxLength,
+                vect2,
+                flags,
+                Callback);
+            byte[] managedArray = new byte[buffer.Length];
+            Marshal.Copy(unmanagedPointer, managedArray, 0, buffer.Length);
+            return Encoding.Default.GetString(managedArray).TrimEnd('\0');
         }
     }
 }

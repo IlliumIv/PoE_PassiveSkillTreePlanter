@@ -9,10 +9,9 @@ namespace PassiveSkillTreePlanter
     {
         public PassiveSkillTreePlanterSettings()
         {
-            var centerPos = BasePlugin.API.GameController.Window.GetWindowRectangle().Center;
+            Vector2 centerPos = BasePlugin.API.GameController.Window.GetWindowRectangle().Center;
             Enable = false;
             BorderWidth = new RangeNode<int>(1, 1, 5);
-            BorderColor = new ColorNode(Color.Red);
             LineWidth = new RangeNode<int>(3, 0, 5);
             LineColor = new ColorNode(new Color(0, 255, 0, 50));
             ShowWindow = false;
@@ -23,13 +22,25 @@ namespace PassiveSkillTreePlanter
 
         public RangeNode<int> BorderWidth { get; set; }
 
-        public ColorNode BorderColor { get; set; }
-
         public RangeNode<int> LineWidth { get; set; }
 
         public ColorNode LineColor { get; set; }
 
         public string SelectedURLFile { get; set; }
+        public string SelectedURL { get; set; } = "";
+        public string SelectedTreeName { get; set; } = "";
+
+
+        public RangeNode<int> PickedBorderWidth { get; set; } = new RangeNode<int>(1, 1, 5);
+        public RangeNode<int> UnpickedBorderWidth { get; set; } = new RangeNode<int>(3, 1, 5);
+        public RangeNode<int> WrongPickedBorderWidth { get; set; } = new RangeNode<int>(3, 1, 5);
+
+        public ColorNode PickedBorderColor { get; set; } = new ColorNode(Color.Gray);
+        public ColorNode UnpickedBorderColor { get; set; } = new ColorNode(Color.Green);
+        public ColorNode WrongPickedBorderColor { get; set; } = new ColorNode(Color.Red);
+
+        public TreeConfig.SkillTreeData SelectedBuild { get; set; } = new TreeConfig.SkillTreeData();
+        public TreeConfig.SkillTreeData SelectedBuildCreating { get; set; } = new TreeConfig.SkillTreeData();
 
         [Menu("Show ImGui Settings")]
         public ToggleNode ShowWindow { get; set; }

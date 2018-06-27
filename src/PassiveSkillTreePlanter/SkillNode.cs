@@ -6,8 +6,23 @@ namespace PassiveSkillTreePlanter
 {
     public class SkillNode
     {
-        public static float[] OrbitRadii = { 0, 81.5f, 163, 326, 489 };
-        public static float[] SkillsPerOrbit = { 1, 6, 12, 12, 40 };
+        public static float[] OrbitRadii =
+        {
+                0,
+                81.5f,
+                163,
+                326,
+                489
+        };
+
+        public static float[] SkillsPerOrbit =
+        {
+                1,
+                6,
+                12,
+                12,
+                40
+        };
 
 
         public bool bJevel;
@@ -33,7 +48,11 @@ namespace PassiveSkillTreePlanter
         {
             get
             {
-                if (SkillNodeGroup == null) return new Vector2();
+                if (SkillNodeGroup == null)
+                {
+                    return new Vector2();
+                }
+
                 double d = OrbitRadii[Orbit];
                 return SkillNodeGroup.Position - new Vector2((float) (d * Math.Sin(-Arc)), (float) (d * Math.Cos(-Arc)));
             }
@@ -45,11 +64,19 @@ namespace PassiveSkillTreePlanter
         {
             DrawPosition = Position;
             if (bJevel)
+            {
                 DrawSize = 160;
+            }
+
             if (bNotable)
+            {
                 DrawSize = 170;
+            }
+
             if (bKeyStone)
+            {
                 DrawSize = 250;
+            }
         }
 
         private static double GetOrbitAngle(int orbitIndex, int maxNodePositions) => 2 * Math.PI * orbitIndex / maxNodePositions;
