@@ -312,7 +312,7 @@ namespace PassiveSkillTreePlanter
                     Encoding.UTF8.GetBytes(returnString)
                 )
             );
-            return returnString;
+            return returnString.TrimEnd('\u0000');
         }
     }
 }
