@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using ImGuiNET;
 using PoeHUD.Framework;
@@ -283,8 +284,6 @@ namespace PassiveSkillTreePlanter
 
             var unmanagedPointer = Marshal.AllocHGlobal(buffer.Length);
             Marshal.Copy(buffer, 0, unmanagedPointer, buffer.Length);
-            // Call unmanaged code
-            Marshal.FreeHGlobal(unmanagedPointer);
 
             int Callback(TextEditCallbackData* data)
             {
@@ -301,7 +300,19 @@ namespace PassiveSkillTreePlanter
                 Callback);
             byte[] managedArray = new byte[buffer.Length];
             Marshal.Copy(unmanagedPointer, managedArray, 0, buffer.Length);
-            return Encoding.Default.GetString(managedArray).TrimEnd('\0');
+            var returnString = Encoding.Default.GetString(managedArray);
+            returnString = Encoding.ASCII.GetString(
+                Encoding.Convert(
+                    Encoding.UTF8,
+                    Encoding.GetEncoding(
+                        Encoding.ASCII.EncodingName,
+                        new EncoderReplacementFallback(string.Empty),
+                        new DecoderExceptionFallback()
+                    ),
+                    Encoding.UTF8.GetBytes(returnString)
+                )
+            );
+            return returnString;
         }
     }
 }
