@@ -71,6 +71,65 @@ namespace PassiveSkillTreePlanter
         {
             base.Render();
             ExtRender();
+            EzTreeChanger();
+        }
+        public bool InBounds(int index, int arrayLength)
+        {
+            return (index >= 0 && index < arrayLength);
+        }
+
+        private void EzTreeChanger()
+        {
+            //Check if setting is on
+            if (!Settings.EnableEzTreeChanger)
+                return;
+
+            //check if Skill Tree window is open
+            var skillTreeElement = GameController.Game.IngameState.IngameUi.TreePanel;
+            if (!skillTreeElement.IsVisible)
+                return;
+
+            //delacre a few variables
+            var topLeftGameWindow = GameController.Window.GetWindowRectangle().TopLeft;
+
+            var isOpen = true;
+            //Start of Draw imgui window
+            if (ImGuiExtension.BeginWindow("#noTitleTreePlanner", ref isOpen, (int)topLeftGameWindow.X, (int)topLeftGameWindow.Y, 0, 0, WindowFlags.NoTitleBar | WindowFlags.NoMove, true))
+            {
+                bool pressedBack = false;
+                bool pressedNext = false;
+
+                if (ImGui.Button("<"))
+                {
+                    pressedBack = true;
+                    //LogMessage($"Selected index wanting to go from {Settings.SelectedBuild.SelectedIndex} -> {Settings.SelectedBuild.SelectedIndex -1}, Max Index in Build is {Settings.SelectedBuild.Trees.Count}", 10);
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button(">"))
+                {
+                    pressedNext = true;
+                    //LogMessage($"Selected index wanting to go from {Settings.SelectedBuild.SelectedIndex} -> {Settings.SelectedBuild.SelectedIndex + 1}, Max Index in Build is {Settings.SelectedBuild.Trees.Count}", 10);
+                }
+                ImGui.SameLine();
+
+                ImGui.Text(Settings.SelectedTreeName);
+
+                if (pressedBack && InBounds(Settings.SelectedBuild.SelectedIndex - 1, Settings.SelectedBuild.Trees.Count-1))
+                {
+                    Settings.SelectedBuild.SelectedIndex -= 1;
+                    ReadUrlFromSelectedBuild(Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].SkillTreeUrl, Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].Tag);
+                }
+                if (pressedNext && InBounds(Settings.SelectedBuild.SelectedIndex + 1, Settings.SelectedBuild.Trees.Count-1))
+                {
+                    Settings.SelectedBuild.SelectedIndex += 1;
+                    ReadUrlFromSelectedBuild(Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].SkillTreeUrl, Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].Tag);
+                }
+
+                // end the imgui window
+                ImGui.EndWindow();
+            }
         }
 
         private void LoadBuildFiles()
@@ -216,7 +275,8 @@ namespace PassiveSkillTreePlanter
                 "Build Edit",
                 "Build Add",
                 "Colors",
-                "Sliders"
+                "Sliders",
+                "Toggles"
             };
             ImGuiNative.igGetContentRegionAvail(out var newcontentRegionArea);
             if (ImGui.BeginChild("LeftSettings", new Vector2(150, newcontentRegionArea.Y), false, WindowFlags.Default))
@@ -269,7 +329,10 @@ namespace PassiveSkillTreePlanter
                         for (var j = 0; j < Settings.SelectedBuild.Trees.Count; j++)
                         {
                             if (ImGui.Button($"LOAD##LOADRULE{j}"))
+                            {
                                 TreeToUse = j;
+                                Settings.SelectedBuild.SelectedIndex = j;
+                            }
 
 
                             ImGui.NextColumn();
@@ -518,13 +581,16 @@ namespace PassiveSkillTreePlanter
                         Settings.LineColor.Value = ImGuiExtension.ColorPicker("Line Color", Settings.LineColor);
                         break;
                     case "Sliders":
-                        Settings.PickedBorderWidth.Value =
-                            ImGuiExtension.IntSlider("Picked Border Width", Settings.PickedBorderWidth);
-                        Settings.UnpickedBorderWidth.Value =
-                            ImGuiExtension.IntSlider("Unpicked Border Width", Settings.UnpickedBorderWidth);
-                        Settings.WrongPickedBorderWidth.Value = ImGuiExtension.IntSlider("WrongPicked Border Width",
-                            Settings.WrongPickedBorderWidth);
+                        Settings.offsetX.Value = ImGuiExtension.IntSlider("offsetX", Settings.offsetX);
+                        Settings.offsetY.Value = ImGuiExtension.IntSlider("offsetY", Settings.offsetY);
+
+                        Settings.PickedBorderWidth.Value = ImGuiExtension.IntSlider("Picked Border Width", Settings.PickedBorderWidth);
+                        Settings.UnpickedBorderWidth.Value = ImGuiExtension.IntSlider("Unpicked Border Width", Settings.UnpickedBorderWidth);
+                        Settings.WrongPickedBorderWidth.Value = ImGuiExtension.IntSlider("WrongPicked Border Width", Settings.WrongPickedBorderWidth);
                         Settings.LineWidth.Value = ImGuiExtension.IntSlider("Line Width", Settings.LineWidth);
+                        break;
+                    case "Toggles":
+                        Settings.EnableEzTreeChanger.Value = ImGuiExtension.Checkbox("Enable EZ Tree Changer Within Builds", Settings.EnableEzTreeChanger);
                         break;
                 }
 
@@ -758,8 +824,6 @@ namespace PassiveSkillTreePlanter
             var scale = _uiSkillTreeBase.Scale;
 
             //Hand-picked values
-            var offsetX = 12465;
-            var offsetY = 11582;
             var passives = GameController.Game.IngameState.ServerData.PassiveSkillIds;
 
             var totalNodes = _drawNodes.Count;
@@ -769,8 +833,8 @@ namespace PassiveSkillTreePlanter
             foreach (var node in _drawNodes)
             {
                 var drawSize = node.DrawSize * scale;
-                var posX = (_uiSkillTreeBase.X + node.DrawPosition.X + offsetX) * scale;
-                var posY = (_uiSkillTreeBase.Y + node.DrawPosition.Y + offsetY) * scale;
+                var posX = (_uiSkillTreeBase.X + node.DrawPosition.X + Settings.offsetX) * scale;
+                var posY = (_uiSkillTreeBase.Y + node.DrawPosition.Y + Settings.offsetY) * scale;
 
                 var color = Settings.PickedBorderColor;
                 var vWidth = Settings.PickedBorderWidth.Value;
@@ -790,8 +854,8 @@ namespace PassiveSkillTreePlanter
                 if (Settings.LineWidth > 0)
                     foreach (var link in node.DrawNodeLinks)
                     {
-                        var linkDrawPosX = (_uiSkillTreeBase.X + link.X + offsetX) * scale;
-                        var linkDrawPosY = (_uiSkillTreeBase.Y + link.Y + offsetY) * scale;
+                        var linkDrawPosX = (_uiSkillTreeBase.X + link.X + Settings.offsetX) * scale;
+                        var linkDrawPosY = (_uiSkillTreeBase.Y + link.Y + Settings.offsetY) * scale;
 
                         Graphics.DrawLine(new SharpDX.Vector2(posX, posY),
                             new SharpDX.Vector2(linkDrawPosX, linkDrawPosY), Settings.LineWidth, Settings.LineColor);
@@ -804,8 +868,8 @@ namespace PassiveSkillTreePlanter
                 {
                     node.Init();
                     var drawSize = node.DrawSize * scale;
-                    var posX = (_uiSkillTreeBase.X + node.DrawPosition.X + offsetX) * scale;
-                    var posY = (_uiSkillTreeBase.Y + node.DrawPosition.Y + offsetY) * scale;
+                    var posX = (_uiSkillTreeBase.X + node.DrawPosition.X + Settings.offsetX) * scale;
+                    var posY = (_uiSkillTreeBase.Y + node.DrawPosition.Y + Settings.offsetY) * scale;
 
                     Graphics.DrawLine(new SharpDX.Vector2(posX, posY), new SharpDX.Vector2(posX, posY),
                         Settings.LineWidth, Settings.WrongPickedBorderColor);

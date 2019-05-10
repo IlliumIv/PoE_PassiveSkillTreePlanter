@@ -14,11 +14,10 @@ namespace PassiveSkillTreePlanter
             BorderWidth = new RangeNode<int>(1, 1, 5);
             LineWidth = new RangeNode<int>(3, 0, 5);
             LineColor = new ColorNode(new Color(0, 255, 0, 50));
-            ShowWindow = false;
             SelectedURLFile = string.Empty;
-            LastSettingSize = new ImGuiVector2(620, 376);
-            LastSettingPos = new ImGuiVector2(centerPos.X - LastSettingSize.X / 2, centerPos.Y - LastSettingSize.Y / 2);
         }
+        public RangeNode<int> offsetX { get; set; } = new RangeNode<int>(12465, 11000, 14000);
+        public RangeNode<int> offsetY { get; set; } = new RangeNode<int>(11582, 11000, 13000);
 
         public RangeNode<int> BorderWidth { get; set; }
 
@@ -42,10 +41,6 @@ namespace PassiveSkillTreePlanter
         public TreeConfig.SkillTreeData SelectedBuild { get; set; } = new TreeConfig.SkillTreeData();
         public TreeConfig.SkillTreeData SelectedBuildCreating { get; set; } = new TreeConfig.SkillTreeData();
 
-        [Menu("Show ImGui Settings")]
-        public ToggleNode ShowWindow { get; set; }
-
-        public ImGuiVector2 LastSettingPos { get; set; }
-        public ImGuiVector2 LastSettingSize { get; set; }
+        public ToggleNode EnableEzTreeChanger { get; set; } = true;
     }
 }

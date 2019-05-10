@@ -31,6 +31,13 @@ namespace PassiveSkillTreePlanter
             return ImGui.BeginWindow(title, ref isOpened, autoResize ? WindowFlags.AlwaysAutoResize : WindowFlags.Default);
         }
 
+        public static bool BeginWindow(string title, ref bool isOpened, int x, int y, int width, int height, WindowFlags flags, bool autoResize = false)
+        {
+            ImGui.SetNextWindowPos(new ImGuiVector2(width + x, height + y), Condition.Appearing, new ImGuiVector2(1, 1));
+            ImGui.SetNextWindowSize(new ImGuiVector2(width, height), Condition.Appearing);
+            return ImGui.BeginWindow(title, ref isOpened, flags: autoResize ? WindowFlags.AlwaysAutoResize | flags : WindowFlags.Default | flags);
+        }
+
         public static bool BeginWindow(string title, ref bool isOpened, float x, float y, float width, float height, bool autoResize = false)
         {
             ImGui.SetNextWindowPos(new ImGuiVector2(width + x, height + y), Condition.Appearing, new ImGuiVector2(1, 1));
