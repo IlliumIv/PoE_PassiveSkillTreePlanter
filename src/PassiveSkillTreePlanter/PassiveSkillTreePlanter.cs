@@ -75,7 +75,7 @@ namespace PassiveSkillTreePlanter
         }
         public bool InBounds(int index, int arrayLength)
         {
-            return (index >= 0 && index < arrayLength);
+            return (index >= 0 && index <= arrayLength);
         }
 
         private void EzTreeChanger()
@@ -363,7 +363,7 @@ namespace PassiveSkillTreePlanter
                             ImGui.Text("Notes");
                             // Keep at max 4k byte size not sure why it crashes when upped, not going to bother dealing with this either.
                             Settings.SelectedBuild.Notes = ImGuiExtension.InputTextBox("##Notes",
-                                Settings.SelectedBuild.Notes, 4000, new Vector2(newcontentRegionArea.X - 20, 200),
+                                Settings.SelectedBuild.Notes, 150000, new Vector2(newcontentRegionArea.X - 20, 200),
                                 InputTextFlags.Multiline);
 
                             ImGui.Separator();
