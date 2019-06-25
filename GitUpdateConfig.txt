@@ -1,4 +1,4 @@
-Owner: Stridemann
+Owner: DetectiveSquirrel
 Name: PoE_PassiveSkillTreePlanter
 Repository
 

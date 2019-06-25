@@ -286,6 +286,5 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 config.ini
-GitUpdateConfig.txt
 
 /Builds/

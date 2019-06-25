@@ -8,6 +8,7 @@ using ImGuiNET;
 using PassiveSkillTreePlanter.SkillTreeJson;
 using PassiveSkillTreePlanter.UrlDecoders;
 using PoeHUD.Framework;
+using PoeHUD.Models;
 using PoeHUD.Plugins;
 using PoeHUD.Poe;
 using PoeHUD.Poe.Components;
@@ -44,6 +45,10 @@ namespace PassiveSkillTreePlanter
         public string CurrentlySelectedBuildUrl { get; set; }
         public string CurrentlySelectedBuildForumThread { get; set; }
 
+        public static PartyElements partyStuff { get; set; }
+        public List<EntityWrapper> PlayerEntities { get; set; } = new List<EntityWrapper>();
+        public static List<PartyElementWindow> PlayerInPartyDraw { get; set; } = new List<PartyElementWindow>();
+
         public string SkillTreeUrlFilesDir => LocalPluginDirectory + @"\" + SkillTreeDir;
         public List<string> BuildFiles { get; set; }
         public IntPtr TextEditCallback { get; set; }
@@ -52,6 +57,7 @@ namespace PassiveSkillTreePlanter
         public override void Initialise()
         {
             Core = this;
+            partyStuff = new PartyElements(this);
             if (!Directory.Exists(SkillTreeUrlFilesDir))
             {
                 Directory.CreateDirectory(SkillTreeUrlFilesDir);
@@ -70,6 +76,9 @@ namespace PassiveSkillTreePlanter
         public override void Render()
         {
             base.Render();
+
+            // TODO: let users load party passive trees when we can get it from poehud core
+            //PlayerInPartyDraw = PartyElements.GetPlayerInfoElementList(PlayerEntities);
             ExtRender();
             EzTreeChanger();
         }
@@ -126,6 +135,24 @@ namespace PassiveSkillTreePlanter
                     Settings.SelectedBuild.SelectedIndex += 1;
                     ReadUrlFromSelectedBuild(Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].SkillTreeUrl, Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].Tag);
                 }
+
+                // TODO: let users load party passive trees when we can get it from poehud core
+                //ImGui.Separator();
+
+                //foreach (var partyElementWindow in PlayerInPartyDraw)
+                //{
+                //    if (ImGui.Button($"Load {partyElementWindow.PlayerName}'s Skill Tree"))
+                //    {
+                //        var tempList = new List<ushort>();
+
+                //        foreach (var allocatedPassive in partyElementWindow.Data.PlayerEntity.GetComponent<Player>().AllocatedPassives)
+                //        {
+                //            tempList.Add((ushort)allocatedPassive.PassiveId);
+                //        }
+
+                //        _urlNodes = tempList;
+                //    }
+                //}
 
                 // end the imgui window
                 ImGui.EndWindow();
@@ -347,7 +374,11 @@ namespace PassiveSkillTreePlanter
                             ReadUrlFromSelectedBuild(Settings.SelectedBuild.Trees[TreeToUse].SkillTreeUrl,
                                 Settings.SelectedBuild.Trees[TreeToUse].Tag);
                         ImGui.Text("NOTES:");
-                        ImGui.TextWrapped(Settings.SelectedBuild.Notes);
+
+                        // only way to wrap text with imgui.net without a limit on TextWrap function
+                        ImGuiNative.igPushTextWrapPos(0.0f);
+                        ImGui.TextUnformatted(Settings.SelectedBuild.Notes);
+                        ImGuiNative.igPopTextWrapPos();
                         break;
                     case "Build Edit":
                         if (Settings.SelectedBuild.Trees.Count > 0)

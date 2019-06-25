@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\Tools\Path of Exile Tools\Macros\plugins\5Passive Skill Tree Planer\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -75,7 +75,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomIngameUIElements.cs" />
     <Compile Include="ImGuiExtension.cs" />
+    <Compile Include="PartyElements.cs" />
     <Compile Include="PassiveSkillTreeJson_Downloader.cs" />
     <Compile Include="SkillNode.cs" />
     <Compile Include="PassiveSkillTreePlanter.cs" />
