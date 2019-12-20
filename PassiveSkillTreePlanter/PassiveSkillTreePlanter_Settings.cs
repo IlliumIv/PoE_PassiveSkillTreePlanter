@@ -1,23 +1,22 @@
-﻿using PoeHUD.Hud.Settings;
-using PoeHUD.Plugins;
+﻿using ExileCore.Shared.Attributes;
+using ExileCore.Shared.Interfaces;
+using ExileCore.Shared.Nodes;
 using SharpDX;
 using ImGuiVector2 = System.Numerics.Vector2;
 
 namespace PassiveSkillTreePlanter
 {
-    public class PassiveSkillTreePlanterSettings : SettingsBase
+    public class PassiveSkillTreePlanterSettings : ISettings
     {
         public PassiveSkillTreePlanterSettings()
         {
-            Vector2 centerPos = BasePlugin.API.GameController.Window.GetWindowRectangle().Center;
-            Enable = false;
             BorderWidth = new RangeNode<int>(1, 1, 5);
             LineWidth = new RangeNode<int>(3, 0, 5);
-            LineColor = new ColorNode(new Color(0, 255, 0, 50));
+            LineColor = new ColorNode(Color.Gray);
             SelectedURLFile = string.Empty;
         }
-        public RangeNode<int> offsetX { get; set; } = new RangeNode<int>(12465, 11000, 14000);
-        public RangeNode<int> offsetY { get; set; } = new RangeNode<int>(11582, 11000, 13000);
+        public RangeNode<int> offsetX { get; set; } = new RangeNode<int>(12450, 11000, 14000);
+        public RangeNode<int> offsetY { get; set; } = new RangeNode<int>(11850, 11000, 13000);
 
         public RangeNode<int> BorderWidth { get; set; }
 
@@ -34,13 +33,14 @@ namespace PassiveSkillTreePlanter
         public RangeNode<int> UnpickedBorderWidth { get; set; } = new RangeNode<int>(3, 1, 5);
         public RangeNode<int> WrongPickedBorderWidth { get; set; } = new RangeNode<int>(3, 1, 5);
 
-        public ColorNode PickedBorderColor { get; set; } = new ColorNode(Color.Gray);
+        public ColorNode PickedBorderColor { get; set; } = new ColorNode();
         public ColorNode UnpickedBorderColor { get; set; } = new ColorNode(Color.Green);
         public ColorNode WrongPickedBorderColor { get; set; } = new ColorNode(Color.Red);
 
         public TreeConfig.SkillTreeData SelectedBuild { get; set; } = new TreeConfig.SkillTreeData();
         public TreeConfig.SkillTreeData SelectedBuildCreating { get; set; } = new TreeConfig.SkillTreeData();
 
-        public ToggleNode EnableEzTreeChanger { get; set; } = true;
+        public ToggleNode EnableEzTreeChanger { get; set; } = new ToggleNode(true);
+        public ToggleNode Enable { get; set; } = new ToggleNode(true);
     }
 }

@@ -4,14 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using ExileCore;
+using ExileCore.PoEMemory;
+using ExileCore.PoEMemory.Components;
+using ExileCore.Shared;
+using ExileCore.Shared.AtlasHelper;
 using ImGuiNET;
 using PassiveSkillTreePlanter.SkillTreeJson;
 using PassiveSkillTreePlanter.UrlDecoders;
-using PoeHUD.Framework;
-using PoeHUD.Models;
-using PoeHUD.Plugins;
-using PoeHUD.Poe;
-using PoeHUD.Poe.Components;
 using SharpDX;
 using Vector2 = System.Numerics.Vector2;
 
@@ -35,29 +35,21 @@ namespace PassiveSkillTreePlanter
         public string AddNewBuildThreadUrl = "";
         public string AddNewBuildUrl = "";
 
-        public PassiveSkillTreePlanter()
-        {
-            PluginName = "Passive Skill Data Planner ";
-        }
+        private AtlasTexture _ringImage;
 
         public string CurrentlySelectedBuildFile { get; set; }
         public string CurrentlySelectedBuildFileEdit { get; set; }
         public string CurrentlySelectedBuildUrl { get; set; }
         public string CurrentlySelectedBuildForumThread { get; set; }
 
-        public static PartyElements partyStuff { get; set; }
-        public List<EntityWrapper> PlayerEntities { get; set; } = new List<EntityWrapper>();
-        public static List<PartyElementWindow> PlayerInPartyDraw { get; set; } = new List<PartyElementWindow>();
-
-        public string SkillTreeUrlFilesDir => LocalPluginDirectory + @"\" + SkillTreeDir;
+        public string SkillTreeUrlFilesDir => DirectoryFullName + @"\" + SkillTreeDir;
         public List<string> BuildFiles { get; set; }
         public IntPtr TextEditCallback { get; set; }
         public static PassiveSkillTreePlanter Core { get; set; }
 
-        public override void Initialise()
+        public override void OnLoad()
         {
             Core = this;
-            partyStuff = new PartyElements(this);
             if (!Directory.Exists(SkillTreeUrlFilesDir))
             {
                 Directory.CreateDirectory(SkillTreeUrlFilesDir);
@@ -71,6 +63,11 @@ namespace PassiveSkillTreePlanter
 
             //Read url
             ReadUrlFromSelectedUrl(Settings.SelectedURLFile);
+        }
+        public override bool Initialise()
+        {
+            _ringImage = GetAtlasTexture("AtlasMapCircle");//IconArcing or IconArcing.png, doesn't matter, works both
+            return true;
         }
 
         public override void Render()
@@ -103,7 +100,7 @@ namespace PassiveSkillTreePlanter
 
             var isOpen = true;
             //Start of Draw imgui window
-            if (ImGuiExtension.BeginWindow("#noTitleTreePlanner", ref isOpen, (int)topLeftGameWindow.X, (int)topLeftGameWindow.Y, 0, 0, WindowFlags.NoTitleBar | WindowFlags.NoMove, true))
+            if (ImGuiExtension.BeginWindow("#noTitleTreePlanner", ref isOpen, (int)topLeftGameWindow.X, (int)topLeftGameWindow.Y, 0, 0, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove, true))
             {
                 bool pressedBack = false;
                 bool pressedNext = false;
@@ -136,26 +133,7 @@ namespace PassiveSkillTreePlanter
                     ReadUrlFromSelectedBuild(Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].SkillTreeUrl, Settings.SelectedBuild.Trees[Settings.SelectedBuild.SelectedIndex].Tag);
                 }
 
-                // TODO: let users load party passive trees when we can get it from poehud core
-                //ImGui.Separator();
-
-                //foreach (var partyElementWindow in PlayerInPartyDraw)
-                //{
-                //    if (ImGui.Button($"Load {partyElementWindow.PlayerName}'s Skill Tree"))
-                //    {
-                //        var tempList = new List<ushort>();
-
-                //        foreach (var allocatedPassive in partyElementWindow.Data.PlayerEntity.GetComponent<Player>().AllocatedPassives)
-                //        {
-                //            tempList.Add((ushort)allocatedPassive.PassiveId);
-                //        }
-
-                //        _urlNodes = tempList;
-                //    }
-                //}
-
-                // end the imgui window
-                ImGui.EndWindow();
+                ImGui.EndMenu();
             }
         }
 
@@ -175,8 +153,8 @@ namespace PassiveSkillTreePlanter
         public void RenameFile(string fileName, string oldFileName)
         {
             fileName = CleanFileName(fileName);
-            var newFilePath = Path.Combine(SkillTreeUrlFilesDir, fileName + ".json");
-            var oldFilePath = Path.Combine(SkillTreeUrlFilesDir, oldFileName + ".json");
+            var newFilePath = Path.Combine(SkillTreeUrlFilesDir, fileName.TrimEnd('\0').TrimEnd('\u0000').Replace("\u0000", "") + ".json");
+            var oldFilePath = Path.Combine(SkillTreeUrlFilesDir, oldFileName.TrimEnd('\0').TrimEnd('\u0000').Replace("\u0000", "") + ".json");
             if (File.Exists(newFilePath))
             {
                 LogError("PassiveSkillTreePlanter: File already Exists!", 10);
@@ -294,7 +272,7 @@ namespace PassiveSkillTreePlanter
             }
         }
 
-        public override void DrawSettingsMenu()
+        public override void DrawSettings()
         {
             string[] settingName =
             {
@@ -305,18 +283,18 @@ namespace PassiveSkillTreePlanter
                 "Sliders",
                 "Toggles"
             };
-            ImGuiNative.igGetContentRegionAvail(out var newcontentRegionArea);
-            if (ImGui.BeginChild("LeftSettings", new Vector2(150, newcontentRegionArea.Y), false, WindowFlags.Default))
+            var newcontentRegionArea = ImGuiNative.igGetContentRegionAvail();
+            if (ImGui.BeginChild("LeftSettings", new Vector2(150, newcontentRegionArea.Y), false, ImGuiWindowFlags.None))
                 for (var i = 0; i < settingName.Length; i++)
                     if (ImGui.Selectable(settingName[i], selected == i))
                         selected = i;
 
             ImGui.EndChild();
             ImGui.SameLine();
-            ImGui.PushStyleVar(StyleVar.ChildRounding, 5.0f);
-            ImGuiNative.igGetContentRegionAvail(out newcontentRegionArea);
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+            newcontentRegionArea = ImGuiNative.igGetContentRegionAvail();
             if (ImGui.BeginChild("RightSettings", new Vector2(newcontentRegionArea.X, newcontentRegionArea.Y), true,
-                WindowFlags.Default))
+                ImGuiWindowFlags.None))
                 switch (settingName[selected])
                 {
                     case "Build Selection":
@@ -335,7 +313,7 @@ namespace PassiveSkillTreePlanter
                             Process.Start(Settings.SelectedBuild.BuildLink);
 
                         Settings.SelectedURLFile = ImGuiExtension.ComboBox("Builds", Settings.SelectedURLFile,
-                            BuildFiles, out var buildSelected, ComboFlags.HeightLarge);
+                            BuildFiles, out var buildSelected, ImGuiComboFlags.HeightLarge);
                         if (buildSelected)
                         {
                             Settings.SelectedBuild = TreeConfig.LoadBuild(Settings.SelectedURLFile);
@@ -388,14 +366,14 @@ namespace PassiveSkillTreePlanter
 
                             ImGui.Separator();
                             Settings.SelectedBuild.BuildLink =
-                                PoeHUD.Hud.UI.ImGuiExtension.InputText("Forum Thread", Settings.SelectedBuild.BuildLink,
-                                    1024, InputTextFlags.Default);
+                                ImGuiExtension.InputText("Forum Thread", Settings.SelectedBuild.BuildLink,
+                                    1024, ImGuiInputTextFlags.None);
 
                             ImGui.Text("Notes");
                             // Keep at max 4k byte size not sure why it crashes when upped, not going to bother dealing with this either.
-                            Settings.SelectedBuild.Notes = ImGuiExtension.InputTextBox("##Notes",
+                            Settings.SelectedBuild.Notes = ImGuiExtension.MultiLineTextBox("##Notes",
                                 Settings.SelectedBuild.Notes, 150000, new Vector2(newcontentRegionArea.X - 20, 200),
-                                InputTextFlags.Multiline);
+                                ImGuiInputTextFlags.Multiline);
 
                             ImGui.Separator();
                             ImGui.Columns(4, "EditColums", true);
@@ -423,19 +401,19 @@ namespace PassiveSkillTreePlanter
                                 if (ImGui.Button($"v##MOVERULEDOWNEDIT{j}"))
                                     treesToMoveEdit.Add(new Tuple<int, bool>(j, false));
                                 ImGui.NextColumn();
-                                ImGui.PushItemWidth(ImGui.GetContentRegionAvailableWidth());
+                                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                                 Settings.SelectedBuild.Trees[j].Tag =
-                                    PoeHUD.Hud.UI.ImGuiExtension.InputText($"##TAG{j}",
+                                    ImGuiExtension.InputText($"##TAG{j}",
                                         Settings.SelectedBuild.Trees[j].Tag, 1024,
-                                        InputTextFlags.AutoSelectAll);
+                                        ImGuiInputTextFlags.AutoSelectAll).TrimEnd('\0').TrimEnd('\u0000').Replace("\u0000", "");
                                 ImGui.PopItemWidth();
                                 //ImGui.SameLine();
                                 ImGui.NextColumn();
-                                ImGui.PushItemWidth(ImGui.GetContentRegionAvailableWidth());
+                                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                                 Settings.SelectedBuild.Trees[j].SkillTreeUrl =
-                                    PoeHUD.Hud.UI.ImGuiExtension.InputText($"##GN{j}",
+                                    ImGuiExtension.InputText($"##GN{j}",
                                         Settings.SelectedBuild.Trees[j].SkillTreeUrl, 1024,
-                                        InputTextFlags.AutoSelectAll);
+                                        ImGuiInputTextFlags.AutoSelectAll).TrimEnd('\0').TrimEnd('\u0000').Replace("\u0000", "");
                                 ImGui.NextColumn();
                                 ImGui.PopItemWidth();
                             }
@@ -475,8 +453,9 @@ namespace PassiveSkillTreePlanter
                                     }
                                 }
                             //ImGui.Separator();
+
                             CurrentlySelectedBuildFileEdit = ImGuiExtension.InputText("##RenameLabel",
-                                CurrentlySelectedBuildFileEdit, 1024, InputTextFlags.EnterReturnsTrue);
+                                CurrentlySelectedBuildFileEdit, 200, ImGuiInputTextFlags.None);
                             ImGui.SameLine();
                             if (ImGui.Button("Rename Build"))
                             {
@@ -502,15 +481,15 @@ namespace PassiveSkillTreePlanter
 
                         ImGui.Separator();
                         Settings.SelectedBuildCreating.BuildLink =
-                            PoeHUD.Hud.UI.ImGuiExtension.InputText("Forum Thread",
+                            ImGuiExtension.InputText("Forum Thread",
                                 Settings.SelectedBuildCreating.BuildLink,
-                                1024, InputTextFlags.Default);
+                                1024, ImGuiInputTextFlags.None);
 
                         ImGui.Text("Notes");
                         // Keep at max 4k byte size not sure why it crashes when upped, not going to bother dealing with this either.
-                        Settings.SelectedBuildCreating.Notes = ImGuiExtension.InputTextBox("##NotesAdd",
+                        ImGuiExtension.MultiLineTextBox("##NotesAdd",
                             Settings.SelectedBuildCreating.Notes, 4000, new Vector2(newcontentRegionArea.X - 20, 200),
-                            InputTextFlags.Multiline);
+                            ImGuiInputTextFlags.Multiline);
 
                         ImGui.Separator();
                         ImGui.Columns(4, "AddColums", true);
@@ -538,19 +517,17 @@ namespace PassiveSkillTreePlanter
                             if (ImGui.Button($"v##MOVERULEDOWN{j}"))
                                 treesToMove.Add(new Tuple<int, bool>(j, false));
                             ImGui.NextColumn();
-                            ImGui.PushItemWidth(ImGui.GetContentRegionAvailableWidth());
-                            Settings.SelectedBuildCreating.Trees[j].Tag =
-                                PoeHUD.Hud.UI.ImGuiExtension.InputText($"##TAGADD{j}",
-                                    Settings.SelectedBuildCreating.Trees[j].Tag, 1024,
-                                    InputTextFlags.AutoSelectAll);
+                            ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth());
+                            Settings.SelectedBuildCreating.Trees[j].Tag = ImGuiExtension.InputText($"##TAGADD{j}",
+                                    Settings.SelectedBuildCreating.Trees[j].Tag, 1024, ImGuiInputTextFlags.AutoSelectAll);
                             ImGui.PopItemWidth();
                             //ImGui.SameLine();
                             ImGui.NextColumn();
-                            ImGui.PushItemWidth(ImGui.GetContentRegionAvailableWidth());
+                            ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth());
                             Settings.SelectedBuildCreating.Trees[j].SkillTreeUrl =
-                                PoeHUD.Hud.UI.ImGuiExtension.InputText($"##GNADD{j}",
+                               ImGuiExtension.InputText($"##GNADD{j}",
                                     Settings.SelectedBuildCreating.Trees[j].SkillTreeUrl, 1024,
-                                    InputTextFlags.AutoSelectAll);
+                                    ImGuiInputTextFlags.AutoSelectAll);
                             ImGui.PopItemWidth();
                             ImGui.NextColumn();
                         }
@@ -592,8 +569,7 @@ namespace PassiveSkillTreePlanter
                             }
 
                         //ImGui.Separator();
-                        AddNewBuildFile = ImGuiExtension.InputText("##CreationLabel", AddNewBuildFile, 1024,
-                            InputTextFlags.EnterReturnsTrue);
+                        AddNewBuildFile = ImGuiExtension.InputText("##CreationLabel", AddNewBuildFile, 1024, ImGuiInputTextFlags.EnterReturnsTrue);
                         if (ImGui.Button($"Save Build to File: {AddNewBuildFile}"))
                         {
                             TreeConfig.SaveSettingFile($@"{SkillTreeUrlFilesDir}\{AddNewBuildFile}", Settings.SelectedBuildCreating);
@@ -751,7 +727,7 @@ namespace PassiveSkillTreePlanter
             _drawNodes = new List<SkillNode>();
 
             //Read data
-            var skillTreeDataPath = LocalPluginDirectory + @"\" + SkillTreeDataFile;
+            var skillTreeDataPath = DirectoryFullName + @"\" + SkillTreeDataFile;
             if (!File.Exists(skillTreeDataPath))
             {
                 LogMessage("PassiveSkillTree: Can't find file " + SkillTreeDataFile + " with skill tree data.", 10);
@@ -816,7 +792,7 @@ namespace PassiveSkillTreePlanter
 
         private async void DownloadTree()
         {
-            var skillTreeDataPath = LocalPluginDirectory + @"\" + SkillTreeDataFile;
+            var skillTreeDataPath = DirectoryFullName + @"\" + SkillTreeDataFile;
             await PassiveSkillTreeJson_Downloader.DownloadSkillTreeToFileAsync(skillTreeDataPath);
             LogMessage("Skill tree updated!", 3);
         }
@@ -879,8 +855,9 @@ namespace PassiveSkillTreePlanter
                     passives.Remove(node.Id);
                 }
 
-                Graphics.DrawPluginImage(Path.Combine(PluginDirectory, "images/AtlasMapCircle.png"),
-                    new RectangleF(posX - drawSize / 2, posY - drawSize / 2, drawSize, drawSize), color);
+                //Graphics.DrawPluginImage(Path.Combine(DirectoryFullName, "images/AtlasMapCircle.png"),
+                //new RectangleF(posX - drawSize / 2, posY - drawSize / 2, drawSize, drawSize), color);
+                Graphics.DrawImage(_ringImage, new RectangleF(posX - drawSize / 2, posY - drawSize / 2, drawSize, drawSize), color);
 
                 if (Settings.LineWidth > 0)
                     foreach (var link in node.DrawNodeLinks)
@@ -904,27 +881,28 @@ namespace PassiveSkillTreePlanter
 
                     Graphics.DrawLine(new SharpDX.Vector2(posX, posY), new SharpDX.Vector2(posX, posY),
                         Settings.LineWidth, Settings.WrongPickedBorderColor);
-                    Graphics.DrawPluginImage(Path.Combine(PluginDirectory, "images/AtlasMapCircle.png"),
-                        new RectangleF(posX - drawSize / 2, posY - drawSize / 2, drawSize, drawSize),
-                        Settings.WrongPickedBorderColor);
+                    //Graphics.DrawPluginImage(Path.Combine(DirectoryFullName, "images/AtlasMapCircle.png"),
+                    //new RectangleF(posX - drawSize / 2, posY - drawSize / 2, drawSize, drawSize),
+                    //Settings.WrongPickedBorderColor);
+                    Graphics.DrawImage(_ringImage, new RectangleF(posX - drawSize / 2, posY - drawSize / 2, drawSize, drawSize), Settings.WrongPickedBorderColor);
                 }
 
 
             var textPos = new SharpDX.Vector2(50, 300);
-            Graphics.DrawText("Total Data Nodes: " + totalNodes, 15, textPos, Color.White);
+            Graphics.DrawText("Total Tree Nodes: " + totalNodes, textPos, Color.White, 15);
             textPos.Y += 20;
-            Graphics.DrawText("Picked Nodes: " + pickedNodes, 15, textPos, Color.Green);
+            Graphics.DrawText("Picked Nodes: " + pickedNodes, textPos, Color.Green, 15);
             textPos.Y += 20;
-            Graphics.DrawText("Wrong Picked Nodes: " + wrongPicked, 15, textPos, Color.Red);
+            Graphics.DrawText("Wrong Picked Nodes: " + wrongPicked, textPos, Color.Red, 15);
         }
 
-        public bool IsAllocated(ulong passiveID)
-        {
-            foreach (var passive in GameController.Player.GetComponent<Player>().AllocatedPassives)
-                if ((int) passiveID == passive.PassiveId)
-                    return true;
+        //public bool IsAllocated(ulong passiveID)
+        //{
+        //    foreach (var passive in GameController.Player.GetComponent<Player>().AllocatedPassives)
+        //        if ((int) passiveID == passive.PassiveId)
+        //            return true;
 
-            return false;
-        }
+        //    return false;
+        //}
     }
 }
