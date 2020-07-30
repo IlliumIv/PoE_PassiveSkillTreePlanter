@@ -19,10 +19,10 @@ namespace PassiveSkillTreePlanter
         //Cached for drawing
         public float DrawSize = 100;
         public ushort Id; // "id": -28194677,
-        public List<ushort> linkedNodes = new List<ushort>();
+        public List<long> linkedNodes = new List<long>();
         public string Name; //"dn": "Block Recovery",
-        public int Orbit; //  "o": 1,
-        public int OrbitIndex; // "oidx": 3,
+        public long Orbit; //  "o": 1,
+        public long OrbitIndex; // "oidx": 3,
         public SkillNodeGroup SkillNodeGroup;
 
         public Vector2 Position
@@ -30,7 +30,7 @@ namespace PassiveSkillTreePlanter
             get
             {
                 if (SkillNodeGroup == null) return new Vector2();
-                double d = OrbitRadii[Orbit];
+                double d = OrbitRadii[(int) Orbit];
                 return SkillNodeGroup.Position - new Vector2((float)(d * Math.Sin(-Arc)), (float)(d * Math.Cos(-Arc)));
             }
         }
@@ -51,7 +51,7 @@ namespace PassiveSkillTreePlanter
                 DrawSize = 250;
         }
 
-        private static double GetOrbitAngle(int orbitIndex, int maxNodePositions)
+        private static double GetOrbitAngle(long orbitIndex, long maxNodePositions)
         {
             return 2 * Math.PI * orbitIndex / maxNodePositions;
         }
@@ -60,7 +60,7 @@ namespace PassiveSkillTreePlanter
     public class SkillNodeGroup
     {
         public List<SkillNode> Nodes = new List<SkillNode>();
-        public Dictionary<int, bool> OcpOrb = new Dictionary<int, bool>();
+        public List<long> OcpOrb = new List<long>();
         public Vector2 Position;
     }
 }

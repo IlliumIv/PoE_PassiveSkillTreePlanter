@@ -12,7 +12,7 @@ namespace PassiveSkillTreePlanter.SkillTreeJson
         public List<SkillNodeGroup> NodeGroups;
         public List<SkillNode> Nodes;
         public Dictionary<ushort, SkillNode> Skillnodes;
-        public PoESkillTree SkillTree;
+        public PassiveSkillTreePlanterNew.PoESkillTree SkillTree;
 
         public void Decode(string jsonTree)
         {
@@ -32,39 +32,38 @@ namespace PassiveSkillTreePlanter.SkillTreeJson
                 }
             };
 
-            SkillTree = JsonConvert.DeserializeObject<PoESkillTree>(jsonTree, jss);
+            SkillTree = JsonConvert.DeserializeObject<PassiveSkillTreePlanterNew.PoESkillTree>(jsonTree, jss);
             Skillnodes = new Dictionary<ushort, SkillNode>();
             NodeGroups = new List<SkillNodeGroup>();
 
-            foreach (var nd in SkillTree.nodes)
+            foreach (var nd in SkillTree.Nodes)
             {
                 var skillNode = new SkillNode
                 {
-                    Id = nd.Value.id,
-                    Name = nd.Value.dn,
-                    Orbit = nd.Value.o,
-                    OrbitIndex = nd.Value.oidx,
-                    bJevel = nd.Value.isJewelSocket,
-                    bKeyStone = nd.Value.ks,
-                    bMastery = nd.Value.m,
-                    bMult = nd.Value.isMultipleChoice,
-                    bNotable = nd.Value.not,
-                    linkedNodes = nd.Value._out
+                    Id = (ushort)nd.Value.Skill,
+                    Name = nd.Value.Name,
+                    Orbit = nd.Value.Orbit,
+                    OrbitIndex = nd.Value.OrbitIndex,
+                    bJevel = nd.Value.IsJewelSocket,
+                    bMastery = nd.Value.IsMastery,
+                    bMult = nd.Value.IsMultipleChoice,
+                    linkedNodes = nd.Value.Out,
+                    bKeyStone = nd.Value.IsKeystone
                 };
 
                 Nodes.Add(skillNode);
-                Skillnodes.Add(nd.Value.id, skillNode);
+                Skillnodes.Add((ushort)nd.Value.Skill, skillNode);
             }
 
             NodeGroups = new List<SkillNodeGroup>();
 
-            foreach (var gp in SkillTree.groups)
+            foreach (var gp in SkillTree.Groups)
             {
                 var ng = new SkillNodeGroup();
-                ng.OcpOrb = gp.Value.oo;
-                ng.Position = new Vector2((float)gp.Value.x, (float)gp.Value.y);
+                ng.OcpOrb = gp.Value.Orbits;
+                ng.Position = new Vector2((float)gp.Value.X, (float)gp.Value.Y);
 
-                foreach (var node in gp.Value.n)
+                foreach (var node in gp.Value.Nodes)
                 {
                     var nodeToAdd = Skillnodes[node];
                     ng.Nodes.Add(nodeToAdd);
