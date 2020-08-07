@@ -15,8 +15,6 @@ using PassiveSkillTreePlanter.UrlDecoders;
 using SharpDX;
 using Vector2 = System.Numerics.Vector2;
 
-//null space test
-
 namespace PassiveSkillTreePlanter
 {
     public class PassiveSkillTreePlanter : BaseSettingsPlugin<PassiveSkillTreePlanterSettings>
