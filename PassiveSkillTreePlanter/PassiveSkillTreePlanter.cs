@@ -14,7 +14,7 @@ using PassiveSkillTreePlanter.SkillTreeJson;
 using PassiveSkillTreePlanter.UrlDecoders;
 using SharpDX;
 using Vector2 = System.Numerics.Vector2;
-// test 4
+// test 6
 namespace PassiveSkillTreePlanter
 {
     public class PassiveSkillTreePlanter : BaseSettingsPlugin<PassiveSkillTreePlanterSettings>
