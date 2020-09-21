@@ -19,7 +19,7 @@ namespace PassiveSkillTreePlanter
 {
     public class PassiveSkillTreePlanter : BaseSettingsPlugin<PassiveSkillTreePlanterSettings>
     {
-        public const string SkillTreeDataFile = "SkillTreeData.dat";
+        public const string SkillTreeDataFile = "SkillTreeData.json";
         public const string SkillTreeDir = "Builds";
         public static int selected;
         public readonly PoESkillTreeJsonDecoder _skillTreeeData = new PoESkillTreeJsonDecoder();

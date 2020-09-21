@@ -288,3 +288,6 @@ __pycache__/
 config.ini
 
 /Builds/
+
+# KDiff3
+*.orig
