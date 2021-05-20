@@ -19,7 +19,7 @@ namespace PassiveSkillTreePlanter
 {
     public class PassiveSkillTreePlanter : BaseSettingsPlugin<PassiveSkillTreePlanterSettings>
     {
-        public const string SkillTreeDataFile = "SkillTreeData.dat";
+        public const string SkillTreeDataFile = "SkillTreeData.json";
         public const string SkillTreeDir = "Builds";
         public static int selected;
         public readonly PoESkillTreeJsonDecoder _skillTreeeData = new PoESkillTreeJsonDecoder();
@@ -646,13 +646,13 @@ namespace PassiveSkillTreePlanter
             var skillTreeUrl = url;
 
             // replaces the game tree version "x.x.x/"
-            var rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/fullscreen-passive-skill-tree\\/(([0-9]\\W){3})",
+            var rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/fullscreen-passive-skill-tree\\/(\\d+(\\.\\d+)+\\/)",
                 RegexOptions.IgnoreCase);
             var match = rgx.Match(skillTreeUrl);
             if (match.Success)
                 skillTreeUrl = skillTreeUrl.Replace(match.Groups[1].Value, "");
 
-            rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/passive-skill-tree\\/(([0-9]\\W){3})",
+            rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/passive-skill-tree\\/(\\d+(\\.\\d+)+\\/)",
                 RegexOptions.IgnoreCase);
             match = rgx.Match(skillTreeUrl);
             if (match.Success)
@@ -676,13 +676,13 @@ namespace PassiveSkillTreePlanter
             var skillTreeUrl = Settings.SelectedURL;
 
             // replaces the game tree version "x.x.x/"
-            var rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/fullscreen-passive-skill-tree\\/(([0-9]\\W){3})",
+            var rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/fullscreen-passive-skill-tree\\/(\\d+(\\.\\d+)+\\/)",
                 RegexOptions.IgnoreCase);
             var match = rgx.Match(skillTreeUrl);
             if (match.Success)
                 skillTreeUrl = skillTreeUrl.Replace(match.Groups[1].Value, "");
 
-            rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/passive-skill-tree\\/(([0-9]\\W){3})",
+            rgx = new Regex("^https:\\/\\/www.pathofexile.com\\/passive-skill-tree\\/(\\d+(\\.\\d+)+\\/)",
                 RegexOptions.IgnoreCase);
             match = rgx.Match(skillTreeUrl);
             if (match.Success)
@@ -748,8 +748,9 @@ namespace PassiveSkillTreePlanter
                 node.Init();
                 _drawNodes.Add(node);
                 var dontDrawLinesTwice = new List<ushort>();
-                foreach (var lNodeId in node.linkedNodes)
+                foreach (var l in node.linkedNodes)
                 {
+                    var lNodeId = (ushort) l;
                     if (!_urlNodes.Contains(lNodeId))
                         continue;
 
@@ -845,7 +846,7 @@ namespace PassiveSkillTreePlanter
 
                 var color = Settings.PickedBorderColor;
                 var vWidth = Settings.PickedBorderWidth.Value;
-                if (!passives.Contains(node.Id))
+                if (!passives.Contains((ushort) node.Id))
                 {
                     vWidth = Settings.UnpickedBorderWidth.Value;
                     color = Settings.UnpickedBorderColor;
