@@ -17,6 +17,9 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace PassiveSkillTreePlanter
 {
+    using System.Threading.Tasks;
+
+
     public class PassiveSkillTreePlanter : BaseSettingsPlugin<PassiveSkillTreePlanterSettings>
     {
         public const string SkillTreeDataFile = "SkillTreeData.json";
@@ -722,12 +725,15 @@ namespace PassiveSkillTreePlanter
             return tempList;
         }
 
-        private void ProcessNodes()
+        private async void ProcessNodes()
         {
             _drawNodes = new List<SkillNode>();
 
             //Read data
             var skillTreeDataPath = DirectoryFullName + @"\" + SkillTreeDataFile;
+
+            if (!File.Exists(skillTreeDataPath)) await DownloadTree();
+
             if (!File.Exists(skillTreeDataPath))
             {
                 LogMessage("PassiveSkillTree: Can't find file " + SkillTreeDataFile + " with skill tree data.", 10);
@@ -791,11 +797,11 @@ namespace PassiveSkillTreePlanter
             return false;
         }
 
-        private async void DownloadTree()
+        private async Task DownloadTree()
         {
             var skillTreeDataPath = DirectoryFullName + @"\" + SkillTreeDataFile;
             await PassiveSkillTreeJson_Downloader.DownloadSkillTreeToFileAsync(skillTreeDataPath);
-            LogMessage("Skill tree updated!", 3);
+            LogMessage($"{Name}: Skill tree updated!", 3);
         }
 
         private void ExtRender()
