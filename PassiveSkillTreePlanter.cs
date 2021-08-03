@@ -732,7 +732,8 @@ namespace PassiveSkillTreePlanter
             //Read data
             var skillTreeDataPath = DirectoryFullName + @"\" + SkillTreeDataFile;
 
-            if (!File.Exists(skillTreeDataPath)) await DownloadTree();
+            if (!File.Exists(skillTreeDataPath)
+                || DateTime.Now - new FileInfo(skillTreeDataPath).CreationTime > new TimeSpan(90, 0, 0, 0)) await DownloadTree();
 
             if (!File.Exists(skillTreeDataPath))
             {
